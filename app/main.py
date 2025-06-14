@@ -1,3 +1,5 @@
+import json
+import os
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.responses import FileResponse
 from pathlib import Path
@@ -6,19 +8,32 @@ import pyrebase
 
 from pdfminer.high_level import extract_text as extract_pdf_text
 from docx import Document
+try:
+    import olefile  # for basic HWP text extraction
+except Exception:  # pragma: no cover - optional dependency
+    olefile = None
 
 
 def extract_text_from_file(path: Path) -> str:
-    """Extract text from PDF, DOCX, or TXT files."""
-    if path.suffix.lower() == ".pdf":
+    """Extract text from PDF, DOCX, TXT, or HWP files."""
+    ext = path.suffix.lower()
+    if ext == ".pdf":
         return extract_pdf_text(str(path))
-    if path.suffix.lower() in {".docx", ".doc"}:
+    if ext in {".docx", ".doc"}:
         try:
             doc = Document(str(path))
             return "\n".join(p.text for p in doc.paragraphs)
         except Exception:
             return ""
-    if path.suffix.lower() in {".txt"}:
+    if ext == ".hwp" and olefile is not None:
+        try:
+            ole = olefile.OleFileIO(str(path))
+            encoded = ole.openstream("PrvText").read()
+            ole.close()
+            return encoded.decode("utf-16")
+        except Exception:
+            return ""
+    if ext == ".txt":
         return path.read_text(errors="ignore")
     # Unsupported file types are ignored
     return ""
@@ -28,7 +43,7 @@ def summarize_text(text: str, word_limit: int = 50) -> str:
     words = text.split()
     return " ".join(words[:word_limit])
 
-FIREBASE_CONFIG = {
+DEFAULT_FIREBASE_CONFIG = {
     "apiKey": "AIzaSyAnN08UzeuiltabBhYex9eq74W8HyAiXPw",
     "authDomain": "project-self-coaching.firebaseapp.com",
     "projectId": "project-self-coaching",
@@ -38,6 +53,12 @@ FIREBASE_CONFIG = {
     "measurementId": "G-NVWCYERX8T",
     "databaseURL": "https://project-self-coaching.firebaseio.com",
 }
+FIREBASE_CONFIG = DEFAULT_FIREBASE_CONFIG
+if os.environ.get("FIREBASE_CONFIG_JSON"):
+    try:
+        FIREBASE_CONFIG = json.loads(os.environ["FIREBASE_CONFIG_JSON"])
+    except json.JSONDecodeError:
+        FIREBASE_CONFIG = DEFAULT_FIREBASE_CONFIG
 
 firebase = pyrebase.initialize_app(FIREBASE_CONFIG)
 db = firebase.database()

@@ -6,7 +6,7 @@ This repository contains a high-level plan for a web application that assists te
 
 1. **Pre-Step: Teaching Philosophy and Direction**
    - Teachers upload one or more files (PDF, HWP, Docs, TXT, etc.) along with notes describing the overall teaching philosophy.
-   - The server stores the files, extracts any readable text (PDF and DOCX supported), and summarizes the combined notes. This summary is used as context in later stages.
+   - The server stores the files, extracts any readable text (PDF, DOCX and basic HWP support), and summarizes the combined notes. This summary is used as context in later stages.
 
 2. **Lesson Design Chat**
    - Teachers chat with the system using the Gemini API to discuss lesson structure and assessments.
@@ -40,8 +40,9 @@ Teachers may skip any of the steps above. For example, a teacher can jump direct
 3. The API will be available at `http://127.0.0.1:8000`.
 
 The server stores conversation history and the background summary in **Firebase**.
-The default configuration in `app/main.py` uses a sample Firebase project. If
-you wish to use your own, edit the `FIREBASE_CONFIG` dictionary.
+The default configuration in `app/main.py` uses a sample Firebase project.
+You can override these settings by providing a JSON string in the
+`FIREBASE_CONFIG_JSON` environment variable.
 
 There is also a `/reset` endpoint to clear any stored conversation and background summary.
 

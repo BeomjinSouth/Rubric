@@ -3,3 +3,4 @@ uvicorn
 pdfminer.six
 python-docx
 pyrebase4==4.7.1
+olefile
