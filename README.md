@@ -39,6 +39,10 @@ Teachers may skip any of the steps above. For example, a teacher can jump direct
    ```
 3. The API will be available at `http://127.0.0.1:8000`.
 
+The server stores conversation history and the background summary in **Firebase**.
+The default configuration in `app/main.py` uses a sample Firebase project. If
+you wish to use your own, edit the `FIREBASE_CONFIG` dictionary.
+
 There is also a `/reset` endpoint to clear any stored conversation and background summary.
 
 These endpoints are minimal placeholders that save uploaded files and generate
